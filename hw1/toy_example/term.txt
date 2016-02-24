@@ -1,0 +1,4 @@
+1	apple
+2	orange
+3	rose
+4	tree

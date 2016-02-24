@@ -1,0 +1,29 @@
+13576	Fruits: apples and oranges
+is written by:
+42166	A. Apple
+42167	O. Orange
+published on:
+42146	FRUITS
+with terms:
+1	apple
+2	orange
+
+13577	Red things: apples and roses
+is written by:
+42166	A. Apple
+42168	R. Rose
+published on:
+42147	RED
+with terms:
+1	apple
+3	rose
+
+13578	Plants: roses and trees
+is written by:
+42168	R. Rose
+42169	T. Tree
+published on:
+42148	PLANTS
+with terms:
+3	rose
+4	tree
