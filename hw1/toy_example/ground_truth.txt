@@ -2,6 +2,7 @@
 is written by:
 42166	A. Apple
 42167	O. Orange
+42170	W. Worm
 published on:
 42146	FRUITS
 with terms:
@@ -12,6 +13,7 @@ with terms:
 is written by:
 42166	A. Apple
 42168	R. Rose
+42170	W. Worm
 published on:
 42147	RED
 with terms:
