@@ -115,9 +115,10 @@ except IOError:
 matrixAPVPA_end = time.time()
 print('Time spent:', matrixAPVPA_end - matrixAPVPA_start)
 
-# print('\matrixAPVPA:\n', matrixAPVPA)
-print('\nThe top similar ones using APVPA are:\n')
-print(top_k_similar(42166, 2, matrixAPVPA))
+print('\nThe top similar authors to Christos Faloutsos using APVPA are:\n')
+print(top_k_similar(68855, 11, matrixAPVPA))  #
+print('\nThe top similar authors to AnHai Doan using APVPA are:\n')
+print(top_k_similar(51360, 11, matrixAPVPA))  #
 
 matrixAPT_start = time.time()
 try:
@@ -145,6 +146,7 @@ except IOError:
 matrixAPTPA_end = time.time()
 print('Time spent:', matrixAPTPA_end - matrixAPTPA_start)
 
-# print('\nmatrixAPTPA:\n', matrixAPTPA)
-print('\nThe top similar ones using matrixAPTPA are:\n')
-print(top_k_similar(42166, 2, matrixAPTPA))
+print('\nThe top similar authors to Xifeng Yan using APTPA are:\n')
+print(top_k_similar(66631, 11, matrixAPTPA))
+print('\nThe top similar authors to Jamie Callan using APTPA are:\n')
+print(top_k_similar(59090, 11, matrixAPTPA))
