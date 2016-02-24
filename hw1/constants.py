@@ -1,18 +1,18 @@
 datapath = 'toy_example/'
 # datapath = 'dblp_4area/'
 
-T = 'term'
+TERM = 'term'
 tmin = 1
 tmax = 13575
 
-P = 'paper'
+PAPER = 'paper'
 pmin = 13576
 pmax = 42144
 
-V = 'venue'
+VENUE = 'venue'
 vmin = 42145
 vmax = 42164
 
-A = 'author'
+AUTHOR = 'author'
 amin = 42166
 amax = 70865

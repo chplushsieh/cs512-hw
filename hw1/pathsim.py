@@ -1,157 +1,150 @@
 import csv
-from collections import namedtuple
-import constants
 import numpy
 import pandas
+import constants
+import time
 
-Entry = namedtuple('Entry', 'idx name')
 
-
-def get_type_from_idx(idx):
+def get_type_from_xid(xid):
     typ = ''
-    if constants.tmin <= idx <= constants.tmax:
-        typ = constants.T
-    elif constants.pmin <= idx <= constants.pmax:
-        typ = constants.P
-    elif constants.vmin <= idx <= constants.vmax:
-        typ = constants.V
-    elif constants.amin <= idx <= constants.amax:
-        typ = constants.A
+    if constants.tmin <= xid <= constants.tmax:
+        typ = constants.TERM
+    elif constants.pmin <= xid <= constants.pmax:
+        typ = constants.PAPER
+    elif constants.vmin <= xid <= constants.vmax:
+        typ = constants.VENUE
+    elif constants.amin <= xid <= constants.amax:
+        typ = constants.AUTHOR
     else:
-        print('idx:', idx, 'has no matched type. ')
+        print('xid:', xid, 'has no matched type. ')
 
     return typ
 
 
-def read_relations():
-    relations = dict()
+def read_data(filename):
+    return pandas.read_csv(
+        constants.datapath + filename + '.txt',
+        sep='\t', index_col=0, header=None)
 
+
+def create_matrixPX(paper, x):
+    matrixPX = pandas.DataFrame(numpy.zeros(shape=(len(paper), len(x))))
+    matrixPX = matrixPX.set_index(paper.index.values)
+    matrixPX.columns = x.index.values
+    return matrixPX
+
+
+def set_relation(matrixPT, matrixPV, matrixPA):
     with open(constants.datapath + 'relation.txt', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
 
         for row in reader:
-            paper_idx, other_idx, _ = row
-            paper_idx = int(paper_idx)
-            other_idx = int(other_idx)
-            # print('paper_idx: ', paper_idx, 'other_idx: ', other_idx)
+            pid, xid, _ = row
+            pid = int(pid)
+            xid = int(xid)
 
-            if paper_idx not in relations:
-                relations[paper_idx] = {
-                    constants.A: [], constants.T: [], constants.V: []}
-
-            other_type = get_type_from_idx(other_idx)
-            if other_type == constants.A:
-                relations[paper_idx][constants.A].append(other_idx)
-            elif other_type == constants.T:
-                relations[paper_idx][constants.T].append(other_idx)
-            elif other_type == constants.V:
-                relations[paper_idx][constants.V].append(other_idx)
+            xtype = get_type_from_xid(xid)
+            if xtype == constants.TERM:
+                matrixPT.loc[pid][xid] += 1
+            elif xtype == constants.VENUE:
+                matrixPV.loc[pid][xid] += 1
+            elif xtype == constants.AUTHOR:
+                matrixPA.loc[pid][xid] += 1
             else:
-                print("Line: " + str(reader.line_num) + "matchs nothing. ")
-
-    # print('relations:', relations)
-    return relations
+                print('xid:', xtype, 'has no matched type. ')
 
 
-def read_file(filename):
-    entries = []
-    entries_dict = dict()
+def create_matrices():
+    author = read_data(constants.AUTHOR)
+    term = read_data(constants.TERM)
+    venue = read_data(constants.VENUE)
 
-    with open(constants.datapath + filename + '.txt', newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter='\t')
+    paper = read_data(constants.PAPER)
 
-        for row in reader:
-            idx, name = row
-            idx = int(idx)
-            # print('idx: ', idx, 'name: ', name)
+    matrixPT = create_matrixPX(paper, term)
+    matrixPV = create_matrixPX(paper, venue)
+    matrixPA = create_matrixPX(paper, author)
 
-            # build entries
-            entry = Entry(idx, name)
-            entries.append(entry)
-
-            # build entries_dict
-            entries_dict[idx] = reader.line_num - 1  # make it zero-based
-    return (entries, entries_dict)
+    set_relation(matrixPT, matrixPV, matrixPA)
+    return matrixPT, matrixPV, matrixPA
 
 
-def idx2line_num(idx_lst, entries_dict):
-    return [entries_dict[idx] for idx in idx_lst]
+def top_k_similar(aid, k, matrix):
+    similar = matrix.loc[aid].copy()
+    for other_aid in similar.index:
+        similar[other_aid] = 2 * matrix.loc[aid][other_aid] / (
+            matrix.loc[aid][aid] + matrix.loc[other_aid][other_aid])
 
+    similar.sort_values(inplace=True, ascending=False)
+    return similar[0:k]
 
-def get_xs_from_paper(type_x, paper_idx, xs_dict, relations):
-    relation = relations[paper_idx]
+create_matrices_start = time.time()
+matrixPT, matrixPV, matrixPA = create_matrices()
+# print('matrixPT:', matrixPT)
+# print('matrixPV:', matrixPV)
+# print('matrixPA:', matrixPA)
+print('\n matrixPT, matrixPV, matrixPA done \n')
+create_matrices_end = time.time()
+print('Time spent:', create_matrices_end - create_matrices_start)
 
-    xs_idx_lst = relation[type_x]
-    # return xs_idx_lst  # TODO if label is set properly
-    xs_line_num = idx2line_num(xs_idx_lst, xs_dict)
-
-    return xs_line_num
-
-
-def construct_matrixPX(type_x, xs, xs_dict, papers, relations):
-    matrix = pandas.DataFrame(numpy.zeros(shape=(len(papers), len(xs))))
-    # print('matrix shape:', matrix.shape)
-
-    # TODO read idx as matrix label
-    for p_line_num, paper in enumerate(papers):
-        # print('p_line_num=', p_line_num)
-        xs_line_num = get_xs_from_paper(type_x, paper.idx, xs_dict, relations)
-
-        for x_line_num in xs_line_num:
-            # print('x_line_num=', x_line_num)
-            # print('matrix[p_line_num]:', matrix[p_line_num])
-            matrix[p_line_num][x_line_num] = 1
-
-            # TODO if label is set properly
-            # matrix[p_line_num].loc[x_idx] = 1
-
-    # print('row_content: ', row_content)
-    return matrix
-
-
-def compute_other_similar_authors(author_idx, matrix):
-    author_line_num_lst = idx2line_num([author_idx], authors_dict)
-    author_line_num = author_line_num_lst[0]
-
-    other_authors = matrix.loc[author_line_num, :]
-    for other_line_num, other in enumerate(other_authors):
-        other_authors[other_line_num] = 2*other_authors[other_line_num] / (
-            matrix[author_line_num][author_line_num] +
-            matrix[other_line_num][other_line_num])
-    print('other_authors: ', other_authors)
-    return other_authors
-
-
-def top_k_similar_to(author_idx, k, matrix):
-    other_authors = compute_other_similar_authors(author_idx, matrix)
-    other_authors.sort(ascending=False)
-    print('sorted other_authors: ', other_authors)
-
-
-papers, papers_dict = read_file(constants.P)
-# print('papers:', papers)
-# print('papers_dict:', papers_dict)
-
-authors, authors_dict = read_file(constants.A)
-terms, terms_dict = read_file(constants.T)
-venues, venues_dict = read_file(constants.V)
-
-relations = read_relations()
-
-matrixPA = construct_matrixPX(
-    constants.A, authors, authors_dict, papers, relations)
 matrixAP = matrixPA.transpose()
-print('matrixAP:', matrixAP)
 
-matrixPV = construct_matrixPX(
-    constants.V, venues, venues_dict, papers, relations)
-print('matrixPV:', matrixPV)
-
-matrixAPV = matrixAP.dot(matrixPV)
-print('matrixAPV:', matrixAPV)
+matrixAPV_start = time.time()
+try:
+    matrixAPV = pandas.DataFrame.from_csv(constants.datapath + 'matrixAPV.csv')
+    print('\nmatrixAPV is loaded')
+except IOError:
+    matrixAPV = matrixAP.dot(matrixPV)
+    matrixAPV.to_csv(constants.datapath + 'matrixAPV.csv')
+    print('\nmatrixAPV is saved')
+matrixAPV_end = time.time()
+print('Time spent:', matrixAPV_end - matrixAPV_start)
 
 matrixVPA = matrixAPV.transpose()
-matrixAPVPA = matrixAPV.dot(matrixVPA)
-print('matrixAPVPA:', matrixAPVPA)
 
-top_k_similar_to(42166, 4, matrixAPVPA)
+matrixAPVPA_start = time.time()
+try:
+    matrixAPVPA = pandas.DataFrame.from_csv(
+        constants.datapath + 'matrixAPVPA.csv')
+    matrixAPVPA.columns = matrixAPVPA.index.values
+    print('\nmatrixAPVPA is loaded')
+except IOError:
+    matrixAPVPA = matrixAPV.dot(matrixVPA)
+    matrixAPVPA.to_csv(constants.datapath + 'matrixAPVPA.csv')
+    print('\nmatrixAPVPA is saved')
+matrixAPVPA_end = time.time()
+print('Time spent:', matrixAPVPA_end - matrixAPVPA_start)
+
+# print('\matrixAPVPA:\n', matrixAPVPA)
+print('\nThe top similar ones using APVPA are:\n')
+print(top_k_similar(42166, 2, matrixAPVPA))
+
+matrixAPT_start = time.time()
+try:
+    matrixAPT = pandas.DataFrame.from_csv(constants.datapath + 'matrixAPT.csv')
+    print('\nmatrixAPT is loaded')
+except IOError:
+    matrixAPT = matrixAP.dot(matrixPT)
+    matrixAPT.to_csv(constants.datapath + 'matrixAPT.csv')
+    print('\nmatrixAPT is saved')
+matrixAPT_end = time.time()
+print('Time spent:', matrixAPT_end - matrixAPT_start)
+
+matrixTPA = matrixAPT.transpose()
+
+matrixAPTPA_start = time.time()
+try:
+    matrixAPTPA = pandas.DataFrame.from_csv(
+        constants.datapath + 'matrixAPTPA.csv')
+    matrixAPTPA.columns = matrixAPTPA.index.values
+    print('\nmatrixAPTPA is loaded')
+except IOError:
+    matrixAPTPA = matrixAPT.dot(matrixTPA)
+    matrixAPTPA.to_csv(constants.datapath + 'matrixAPTPA.csv')
+    print('\nmatrixAPTPA is saved')
+matrixAPTPA_end = time.time()
+print('Time spent:', matrixAPTPA_end - matrixAPTPA_start)
+
+# print('\nmatrixAPTPA:\n', matrixAPTPA)
+print('\nThe top similar ones using matrixAPTPA are:\n')
+print(top_k_similar(42166, 2, matrixAPTPA))
