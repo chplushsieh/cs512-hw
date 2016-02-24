@@ -133,7 +133,7 @@ def top_k_similar(aid, k, matrix):
 
     similar.sort_values(inplace=True, ascending=False)
 
-    return similar[1:(k+1)]
+    return similar[0:k]
 
 
 def print_result(result, author):
