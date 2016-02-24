@@ -45,11 +45,11 @@ def set_relation(matrixPT, matrixPV, matrixPA):
 
             xtype = get_type_from_xid(xid)
             if xtype == constants.TERM:
-                matrixPT.loc[pid][xid] += 1
+                matrixPT.loc[pid, xid] += 1
             elif xtype == constants.VENUE:
-                matrixPV.loc[pid][xid] += 1
+                matrixPV.loc[pid, xid] += 1
             elif xtype == constants.AUTHOR:
-                matrixPA.loc[pid][xid] += 1
+                matrixPA.loc[pid, xid] += 1
             else:
                 print('xid:', xtype, 'has no matched type. ')
 
