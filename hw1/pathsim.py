@@ -1,8 +1,9 @@
 import csv
 import numpy
 import pandas
-import constants
 import time
+
+import constants
 
 
 def get_type_from_xid(xid):
@@ -139,8 +140,7 @@ def top_k_similar(aid, k, matrix):
 
 def print_result(result, author):
     for similar_aid, score in result.iteritems():
-        print(author.loc[similar_aid][1])
-        # print(similar_aid, score)
+        print(similar_aid, '\t', author.loc[similar_aid][1], '\t', score)
 
 preprocessing_start = time.process_time()
 

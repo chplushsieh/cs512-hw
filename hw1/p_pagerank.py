@@ -1,6 +1,7 @@
 import pandas
 import numpy
 import csv
+import time
 
 import constants
 
@@ -31,37 +32,41 @@ def create_adjacency_matrix(metapath, author):
     filepath = constants.datapath + 'adjacency_matrix_for_' + metapath + '.csv'
 
     try:
-        matrix = pandas.DataFrame.from_csv(filepath)
+        adjacency = pandas.DataFrame.from_csv(filepath)
+        adjacency.columns = adjacency.index.values
         # print('matrix is loaded')
     except IOError:
         # initialize
-        matrix = pandas.DataFrame(
-            numpy.zeros(shape=(len(author), len(author))))
-        matrix = matrix.set_index(author.index.values)
-        matrix.columns = author.index.values
+        adjacency = pandas.DataFrame(
+            numpy.identity(len(author)))
+        adjacency = adjacency.set_index(author.index.values)
+        adjacency.columns = author.index.values
 
-        parse_link(matrix, metapath)
+        parse_link(adjacency, metapath)
 
         # normalize the matrix
-        row_sum = matrix.sum(axis=1)
-        matrix = matrix.div(row_sum.ix[0], axis='columns')
+        row_sum = adjacency.sum(axis=1)
+        adjacency = adjacency.div(row_sum, axis='rows')
 
-        matrix.to_csv(filepath)
+        adjacency.to_csv(filepath)
         # print('matrix is saved')
 
-    return matrix
+    print('\nadjacency:\n', adjacency)
+    return adjacency
 
 
 def p_pagerank(qid, adjacency, author):
     # create preference vector u
     preference = pandas.DataFrame(
         numpy.zeros(shape=(len(author), 1)))
+    preference = preference.set_index(author.index.values)
     preference.loc[qid] = 1
 
     # initialize scores vector v
     score = pandas.DataFrame(
         numpy.ones(shape=(len(author), 1)))
     score = score / len(author)
+    score = score.set_index(author.index.values)
 
     # iterate
     t = constants.ITERATION_TIME
@@ -75,6 +80,8 @@ def p_pagerank(qid, adjacency, author):
 
 def top_k_similar(qid, k, adjacency, author):
     similar = p_pagerank(qid, adjacency, author)
+    similar = similar.squeeze()
+    similar = similar.copy()
 
     similar.sort_values(inplace=True, ascending=False)
     return similar[0:k]
@@ -82,13 +89,21 @@ def top_k_similar(qid, k, adjacency, author):
 
 def print_result(result, author):
     for similar_aid, score in result.iteritems():
-        print(author.loc[similar_aid][1])
-        # print(similar_aid, score)
+        print(similar_aid, '\t', author.loc[similar_aid][1], '\t', score)
+
+preprocessing_start = time.process_time()
 
 author = read_author()
+preprocessing_done = time.process_time()
+print('\nPreprocessing takes %.2f sec. ' % (
+    preprocessing_done - preprocessing_start))
 
+print('\nadjacency matrix for APVPA is created:')
 adjacencyAPVPA = create_adjacency_matrix('APVPA', author)
-print('adjacency matrix for APVPA is created')
+
+adjacencyAPVPA_done = time.process_time()
+print('\nCreateing adjacency matrix APVPA takes %.2f sec. ' % (
+    adjacencyAPVPA_done - preprocessing_done))
 
 print('\nThe top similar authors to A. Apple using APVPA are:\n')
 result = top_k_similar(42166, 5, adjacencyAPVPA, author)
@@ -102,8 +117,16 @@ print_result(result, author)
 # 51360
 # 'APVPA'
 
+queryAPVPA_done = time.process_time()
+print('\nThe above queries take %.2f sec. ' % (
+    queryAPVPA_done - adjacencyAPVPA_done))
+
+print('\nadjacency matrix for APTPA is created:')
 adjacencyAPTPA = create_adjacency_matrix('APTPA', author)
-print('adjacency matrix for APTPA is created')
+
+adjacencyAPTPA_done = time.process_time()
+print('\nCreateing adjacency matrix APTPA takes %.2f sec. ' % (
+    adjacencyAPTPA_done - queryAPVPA_done))
 
 print('\nThe top similar authors to A. Apple using APVPA are:\n')
 result = top_k_similar(42166, 5, adjacencyAPTPA, author)
@@ -116,3 +139,7 @@ print_result(result, author)
 # print('\nThe top similar authors to Jamie Callan using APTPA are:\n')
 # 59090
 # 'APTPA'
+
+queryAPTPA_done = time.process_time()
+print('\nThe above queries take %.2f sec. ' % (
+    queryAPTPA_done - adjacencyAPTPA_done))
