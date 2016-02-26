@@ -1,6 +1,12 @@
 # datapath = 'toy_example/'
 datapath = 'dblp_4area/'
 
+''' For p_pagerank.py '''
+
+TELEPORT = 0.15
+
+''' For pathsim.py '''
+
 '''
 I changed line 32183 from:
 32183	"Boosting'' a Positive-Data-Only Learner.

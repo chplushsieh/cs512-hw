@@ -4,6 +4,7 @@ import pandas
 import constants
 import time
 
+
 def get_type_from_xid(xid):
     typ = ''
     if constants.tmin <= xid <= constants.tmax:
