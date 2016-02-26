@@ -1,9 +1,10 @@
-# datapath = 'toy_example/'
-datapath = 'dblp_4area/'
+datapath = 'toy_example/'
+# datapath = 'dblp_4area/'
 
 ''' For p_pagerank.py '''
 
 TELEPORT = 0.15
+ITERATION_TIME = 10
 
 ''' For pathsim.py '''
 
