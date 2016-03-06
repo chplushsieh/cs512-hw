@@ -1,5 +1,5 @@
-datapath = 'toy_example/'
-# datapath = 'dblp_4area/'
+# datapath = 'toy_example/'
+datapath = 'dblp_4area/'
 
 ''' For p_pagerank.py '''
 

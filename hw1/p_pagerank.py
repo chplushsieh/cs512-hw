@@ -105,17 +105,19 @@ adjacencyAPVPA_done = time.process_time()
 print('\nCreateing adjacency matrix APVPA takes %.2f sec. ' % (
     adjacencyAPVPA_done - preprocessing_done))
 
+'''
 print('\nThe top similar authors to A. Apple using APVPA are:\n')
 result = top_k_similar(42166, 5, adjacencyAPVPA, author)
 print_result(result, author)
+'''
 
-# print('\nThe top similar authors to Christos Faloutsos using APVPA are:\n')
-# result = top_k_similar(68855, 10, adjacencyAPVPA, author)
-# print_result(result, author)
+print('\nThe top similar authors to Christos Faloutsos using APVPA are:\n')
+result = top_k_similar(68855, 10, adjacencyAPVPA, author)
+print_result(result, author)
 
-# print('\nThe top similar authors to AnHai Doan using APVPA are:\n')
-# 51360
-# 'APVPA'
+print('\nThe top similar authors to AnHai Doan using APVPA are:\n')
+result = top_k_similar(51360, 10, adjacencyAPVPA, author)
+print_result(result, author)
 
 queryAPVPA_done = time.process_time()
 print('\nThe above queries take %.2f sec. ' % (
@@ -128,17 +130,18 @@ adjacencyAPTPA_done = time.process_time()
 print('\nCreateing adjacency matrix APTPA takes %.2f sec. ' % (
     adjacencyAPTPA_done - queryAPVPA_done))
 
+'''
 print('\nThe top similar authors to A. Apple using APVPA are:\n')
 result = top_k_similar(42166, 5, adjacencyAPTPA, author)
 print_result(result, author)
+'''
+print('\nThe top similar authors to Xifeng Yan using APVPA are:\n')
+result = top_k_similar(66631, 10, adjacencyAPTPA, author)
+print_result(result, author)
 
-# print('\nThe top similar authors to Xifeng Yan using APTPA are:\n')
-# 66631
-# 'APTPA'
-
-# print('\nThe top similar authors to Jamie Callan using APTPA are:\n')
-# 59090
-# 'APTPA'
+print('\nThe top similar authors to Jamie Callan using APVPA are:\n')
+result = top_k_similar(59090, 10, adjacencyAPTPA, author)
+print_result(result, author)
 
 queryAPTPA_done = time.process_time()
 print('\nThe above queries take %.2f sec. ' % (
