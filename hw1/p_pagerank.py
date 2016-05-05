@@ -45,8 +45,8 @@ def create_adjacency_matrix(metapath, author):
         parse_link(adjacency, metapath)
 
         # normalize the matrix
-        row_sum = adjacency.sum(axis=1)
-        adjacency = adjacency.div(row_sum, axis='rows')
+        col_sum = adjacency.sum(axis=1)
+        adjacency = adjacency.div(col_sum, axis='rows')
 
         adjacency.to_csv(filepath)
         # print('matrix is saved')
